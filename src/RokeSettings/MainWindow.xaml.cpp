@@ -32,11 +32,14 @@ namespace winrt::RokeSettings::implementation
             // Set Window Title
             SetWindowTextW(hwnd, L"Rokey - Настройки");
 
-            // Center the window on the primary screen
+            // Center the window on the primary screen with DPI scaling
+            UINT dpi = GetDpiForWindow(hwnd);
+            double scale = dpi / 96.0;
+            int width = static_cast<int>(640 * scale);
+            int height = static_cast<int>(700 * scale);
+
             int screenWidth = GetSystemMetrics(SM_CXSCREEN);
             int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-            int width = 560;
-            int height = 580;
             int x = (screenWidth - width) / 2;
             int y = (screenHeight - height) / 2;
             SetWindowPos(hwnd, NULL, x, y, width, height, SWP_NOZORDER | SWP_SHOWWINDOW);

@@ -293,6 +293,42 @@ void ConvertFromClipboard() {
 // ============== Tray Functions ==============
 void ToggleAutostart();
 
+using SetPreferredAppMode_t = int(WINAPI*)(int appMode);
+using FlushMenuThemes_t = void(WINAPI*)();
+using AllowDarkModeForWindow_t = bool(WINAPI*)(HWND hwnd, bool allow);
+
+bool IsSystemDarkMode() {
+    HKEY hKey;
+    DWORD dwValue = 1; // Default to Light Mode
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+        DWORD dwType = REG_DWORD;
+        DWORD dwSize = sizeof(DWORD);
+        RegQueryValueExW(hKey, L"AppsUseLightTheme", NULL, &dwType, (BYTE*)&dwValue, &dwSize);
+        RegCloseKey(hKey);
+    }
+    return dwValue == 0;
+}
+
+void ApplyMenuTheme(HWND hwnd) {
+    HMODULE hUxTheme = LoadLibraryExW(L"uxtheme.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    if (hUxTheme) {
+        auto SetPreferredAppMode = (SetPreferredAppMode_t)GetProcAddress(hUxTheme, MAKEINTRESOURCEA(135));
+        auto FlushMenuThemes = (FlushMenuThemes_t)GetProcAddress(hUxTheme, MAKEINTRESOURCEA(136));
+        auto AllowDarkModeForWindow = (AllowDarkModeForWindow_t)GetProcAddress(hUxTheme, MAKEINTRESOURCEA(133));
+        
+        bool isDark = IsSystemDarkMode();
+        if (SetPreferredAppMode && FlushMenuThemes) {
+            // Mode: 1 = AllowDark, 2 = ForceDark, 3 = ForceLight
+            SetPreferredAppMode(isDark ? 2 : 3);
+            FlushMenuThemes();
+        }
+        if (AllowDarkModeForWindow) {
+            AllowDarkModeForWindow(hwnd, isDark);
+        }
+        FreeLibrary(hUxTheme);
+    }
+}
+
 LRESULT CALLBACK TrayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
         case WM_RELOAD_SETTINGS:
@@ -301,6 +337,7 @@ LRESULT CALLBACK TrayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) 
             
         case WM_USER + 1: // Tray icon message
             if (lParam == WM_RBUTTONUP) {
+                ApplyMenuTheme(hwnd);
                 HMENU hMenu = CreatePopupMenu();
                 
                 bool autostart = false;

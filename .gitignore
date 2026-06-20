@@ -36,3 +36,7 @@ desktop.ini
 # Temporary files
 *.tmp
 *.bak
+
+# Generated Xaml files in root
+XamlMetaDataProvider.cpp
+XamlMetaDataProvider.idl

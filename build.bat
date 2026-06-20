@@ -1,4 +1,8 @@
 @echo off
+echo Terminating running instances of Roke and RokeSettings...
+taskkill /f /im Roke.exe 2>nul
+taskkill /f /im RokeSettings.exe 2>nul
+
 echo Cleaning bin and obj directories...
 if exist bin rmdir /s /q bin
 if exist obj rmdir /s /q obj

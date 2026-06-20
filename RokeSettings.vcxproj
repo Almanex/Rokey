@@ -20,12 +20,12 @@
     <CppWinRTRootNamespaceAutoMerge>true</CppWinRTRootNamespaceAutoMerge>
     <AppContainerApplication>false</AppContainerApplication>
     <WindowsPackageType>None</WindowsPackageType>
-    <WindowsAppSDKBootstrapInitialize>true</WindowsAppSDKBootstrapInitialize>
+    <WindowsAppSdkBootstrapInitialize>true</WindowsAppSdkBootstrapInitialize>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
     <UseWinUI>true</UseWinUI>
-    <AppxGeneratePriEnabled>false</AppxGeneratePriEnabled>
-    <DisableEmbeddedPriGen>true</DisableEmbeddedPriGen>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <AppxPackage>false</AppxPackage>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -278,6 +278,7 @@
     </ItemGroup>
   </Target>
 
+  <Target Name="AddProcessedXamlFilesToCopyLocal" />
   <Target Name="_ValidateConfiguration" />
 
   <Target Name="_GetDefaultResourceLanguage">
@@ -291,4 +292,5 @@
       <PackageArchitecture Condition="'$(PackageArchitecture)' == ''">x64</PackageArchitecture>
     </PropertyGroup>
   </Target>
+
 </Project>

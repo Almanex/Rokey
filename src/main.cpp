@@ -348,7 +348,19 @@ LRESULT CALLBACK TrayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) 
                     }, NULL, 0, NULL);
                     break;
                 case 2: // Show settings
-                    ShellExecuteW(NULL, L"open", L"RokeSettings.exe", NULL, NULL, SW_SHOWNORMAL);
+                    {
+                        wchar_t exePath[512];
+                        if (GetModuleFileNameW(NULL, exePath, 512) != 0) {
+                            wchar_t* lastSlash = wcsrchr(exePath, L'\\');
+                            if (lastSlash) {
+                                *(lastSlash + 1) = L'\0';
+                            }
+                            wcscat_s(exePath, 512, L"RokeSettings.exe");
+                            ShellExecuteW(NULL, L"open", exePath, NULL, NULL, SW_SHOWNORMAL);
+                        } else {
+                            ShellExecuteW(NULL, L"open", L"RokeSettings.exe", NULL, NULL, SW_SHOWNORMAL);
+                        }
+                    }
                     break;
                 case 3: // Exit
                     PostQuitMessage(0);

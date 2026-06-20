@@ -1,0 +1,98 @@
+<Window
+    x:Class="RokeSettings.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:RokeSettings"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Rokey - Настройки">
+
+    <Window.SystemBackdrop>
+        <MicaBackdrop Kind="BaseAlt"/>
+    </Window.SystemBackdrop>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32,24,32,24" Spacing="16" MaxWidth="600" HorizontalAlignment="Stretch">
+            <!-- Header Section -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Rokey" FontSize="28" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorPrimaryBrush}"/>
+                <TextBlock Text="Умный конвертер раскладки клавиатуры" FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+            </StackPanel>
+
+            <MenuFlyoutSeparator Margin="0,8,0,8" />
+
+            <!-- Settings Group -->
+            <StackPanel Spacing="8">
+                
+                <!-- Card 1: Restore Clipboard -->
+                <Border BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="16,12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="Восстанавливать буфер обмена" FontSize="14" FontWeight="SemiBold"/>
+                            <TextBlock Text="Возвращает исходное содержимое буфера после автозамены" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <ToggleSwitch x:Name="RestoreClipboardToggle" Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent="" Margin="12,0,0,0" Toggled="OnSettingChanged"/>
+                    </Grid>
+                </Border>
+
+                <!-- Card 2: Switch Layout -->
+                <Border BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="16,12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="Переключать раскладку системы" FontSize="14" FontWeight="SemiBold"/>
+                            <TextBlock Text="Автоматически меняет активный язык ввода на правильный" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <ToggleSwitch x:Name="SwitchLayoutToggle" Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent="" Margin="12,0,0,0" Toggled="OnSettingChanged"/>
+                    </Grid>
+                </Border>
+
+                <!-- Card 3: Play Sound -->
+                <Border BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="16,12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="Звуковой сигнал" FontSize="14" FontWeight="SemiBold"/>
+                            <TextBlock Text="Воспроизводить системный звук при успешном переводе текста" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <ToggleSwitch x:Name="PlaySoundToggle" Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent="" Margin="12,0,0,0" Toggled="OnSettingChanged"/>
+                    </Grid>
+                </Border>
+
+                <!-- Card 4: Run at Startup -->
+                <Border BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="16,12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="Запускать при старте Windows" FontSize="14" FontWeight="SemiBold"/>
+                            <TextBlock Text="Автоматический запуск программы при входе в систему" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <ToggleSwitch x:Name="AutostartToggle" Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent="" Margin="12,0,0,0" Toggled="OnAutostartChanged"/>
+                    </Grid>
+                </Border>
+
+                <!-- Card 5: Hotkey Choice -->
+                <Border BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="16,12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="Сочетание клавиш активации" FontSize="14" FontWeight="SemiBold"/>
+                            <TextBlock Text="Комбинация для быстрого перевода выделенного текста" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <ComboBox x:Name="HotkeyComboBox" Grid.Column="1" VerticalAlignment="Center" Width="180" Margin="12,0,0,0" SelectionChanged="OnHotkeyChanged">
+                            <ComboBoxItem Content="Ctrl + Shift + Q"/>
+                            <ComboBoxItem Content="Ctrl + Alt + Q"/>
+                            <ComboBoxItem Content="F12"/>
+                        </ComboBox>
+                    </Grid>
+                </Border>
+
+            </StackPanel>
+
+            <!-- Footer Section -->
+            <TextBlock Text="Rokey v1.0.0 | github.com/Almanex/Rokey" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" Margin="0,16,0,0"/>
+        </StackPanel>
+    </ScrollViewer>
+</Window>

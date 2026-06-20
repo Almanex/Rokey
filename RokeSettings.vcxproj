@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{8816C703-9D4F-4D6F-9988-51F67F938D82}</ProjectGuid>
+    <RootNamespace>RokeSettings</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformMinVersion>10.0.19041.0</WindowsTargetPlatformMinVersion>
+    <XamlLanguage>CppWinRT</XamlLanguage>
+    <CppWinRTOptimized>true</CppWinRTOptimized>
+    <CppWinRTRootNamespaceAutoMerge>true</CppWinRTRootNamespaceAutoMerge>
+    <AppContainerApplication>false</AppContainerApplication>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKBootstrapInitialize>true</WindowsAppSDKBootstrapInitialize>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+    <UseWinUI>true</UseWinUI>
+    <AppxGeneratePriEnabled>false</AppxGeneratePriEnabled>
+    <DisableEmbeddedPriGen>true</DisableEmbeddedPriGen>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)obj\RokeSettings\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)obj\RokeSettings\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;WIN32_LEAN_AND_MEAN;WINRT_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;DISABLE_XAML_GENERATED_MAIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>.;src\RokeSettings;Generated Files;$(IntDir);$(IntDir)src\RokeSettings;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;WIN32_LEAN_AND_MEAN;WINRT_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;DISABLE_XAML_GENERATED_MAIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>.;src\RokeSettings;Generated Files;$(IntDir);$(IntDir)src\RokeSettings;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <AdditionalDependencies>dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Manifest Include="src\RokeSettings\app.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="src\RokeSettings\App.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </ApplicationDefinition>
+    <Page Include="src\RokeSettings\MainWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\RokeSettings\App.xaml.cpp">
+      <DependentUpon>src\RokeSettings\App.xaml</DependentUpon>
+    </ClCompile>
+    <ClCompile Include="src\RokeSettings\MainWindow.xaml.cpp">
+      <DependentUpon>src\RokeSettings\MainWindow.xaml</DependentUpon>
+    </ClCompile>
+    <ClCompile Include="src\RokeSettings\generated_impl.cpp" />
+    <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\RokeSettings\App.xaml.h">
+      <DependentUpon>src\RokeSettings\App.xaml</DependentUpon>
+    </ClInclude>
+    <ClInclude Include="src\RokeSettings\MainWindow.xaml.h">
+      <DependentUpon>src\RokeSettings\MainWindow.xaml</DependentUpon>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="src\RokeSettings\App.idl" />
+    <Midl Include="src\RokeSettings\MainWindow.idl" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Windows.CppWinRT" Version="2.0.240405.15" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240311000" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <Target Name="XamlPreCompileCustom" BeforeTargets="ClCompile" DependsOnTargets="MarkupCompilePass1;MarkupCompilePass2" />
+
+  <Target Name="CopyLocalFilesOutputGroup"
+          DependsOnTargets="$(CopyLocalFilesOutputGroupDependsOn)"
+          Returns="@(CopyLocalFilesOutputGroupOutput)">
+    <ItemGroup>
+      <_CopyLocalFilesOutputGroupOutputFromReferences Include="@(ReferenceCopyLocalPaths)"
+                                       Condition="'%(ReferenceCopyLocalPaths.Extension)' != '.xml' or '$(AppxCopyLocalFilesOutputGroupIncludeXmlFiles)' == 'true'">
+        <TargetPath>%(ReferenceCopyLocalPaths.DestinationSubDirectory)%(ReferenceCopyLocalPaths.Filename)%(ReferenceCopyLocalPaths.Extension)</TargetPath>
+      </_CopyLocalFilesOutputGroupOutputFromReferences>
+    </ItemGroup>
+    <RemoveDuplicates Inputs="@(_CopyLocalFilesOutputGroupOutputFromReferences)">
+      <Output TaskParameter="Filtered" ItemName="CopyLocalFilesOutputGroupOutput" />
+    </RemoveDuplicates>
+  </Target>
+
+  <Target Name="GetMrtPackagingOutputs"
+          DependsOnTargets="$(GetMrtPackagingOutputsDependsOn)"
+          Returns="@(PackagingOutputs)">
+    <CallTarget Targets="CustomOutputGroupForPackaging" Condition="'$(IncludeCustomOutputGroupForPackaging)' == 'true'">
+      <Output TaskParameter="TargetOutputs" ItemName="_CustomOutputGroupForPackagingOutput"/>
+    </CallTarget>
+    <ItemGroup Condition="'$(DisableEmbeddedXbf)' != 'true'">
+      <_PackagingOutputsUnexpanded Include="@(_CustomOutputGroupForPackagingOutput)" Condition="'%(_CustomOutputGroupForPackagingOutput.ReferenceSourceTarget)' == 'ExpandSDKReference'">
+        <OutputGroup>SDKRedistOutputGroup</OutputGroup>
+        <ProjectName>$(ProjectName)</ProjectName>
+        <TargetPath Condition="'$(AppxPackage)' != 'true' and '$(PriInitialPath)' != ''">$(PriInitialPath)\%(_CustomOutputGroupForPackagingOutput.TargetPath)</TargetPath>
+      </_PackagingOutputsUnexpanded>
+      <_CustomOutputGroupForPackagingOutput Remove="@(_CustomOutputGroupForPackagingOutput)" Condition="'%(_CustomOutputGroupForPackagingOutput.ReferenceSourceTarget)' == 'ExpandSDKReference'"/>
+    </ItemGroup>
+    <ItemGroup>
+      <_PackagingOutputsUnexpanded Include="@(_CustomOutputGroupForPackagingOutput)" Condition="'%(Extension)' != '.xbf'">
+        <OutputGroup>CustomOutputGroupForPackaging</OutputGroup>
+        <ProjectName>$(ProjectName)</ProjectName>
+        <TargetPath Condition="'$(AppxPackage)' != 'true' and '$(PriInitialPath)' != ''">$(PriInitialPath)\%(_CustomOutputGroupForPackagingOutput.TargetPath)</TargetPath>
+      </_PackagingOutputsUnexpanded>
+      <_PackagingOutputsUnexpanded Include="@(_CustomOutputGroupForPackagingOutput)" Condition="'%(Extension)' == '.xbf' AND '$(_SupportXbfAsEmbedFileResources)' != 'true'">
+        <OutputGroup>CustomOutputGroupForPackaging</OutputGroup>
+        <ProjectName>$(ProjectName)</ProjectName>
+        <TargetPath Condition="'$(AppxPackage)' != 'true' and '$(PriInitialPath)' != ''">$(PriInitialPath)\%(_CustomOutputGroupForPackagingOutput.TargetPath)</TargetPath>
+      </_PackagingOutputsUnexpanded>
+      <_PackagingOutputsUnexpanded Include="@(_CustomOutputGroupForPackagingOutput)" Condition="'%(Extension)' == '.xbf' AND '$(_SupportXbfAsEmbedFileResources)' == 'true'">
+        <OutputGroup>EmbedOutputGroupForPackaging</OutputGroup>
+        <ProjectName>$(ProjectName)</ProjectName>
+        <TargetPath Condition="'$(AppxPackage)' != 'true' and '$(PriInitialPath)' != ''">$(PriInitialPath)\%(_CustomOutputGroupForPackagingOutput.TargetPath)</TargetPath>
+      </_PackagingOutputsUnexpanded>
+    </ItemGroup>
+    <ItemGroup>
+      <_PackagingOutputsExpanded Include="@(_PackagingOutputsUnexpanded)" />
+    </ItemGroup>
+    <CallTarget Targets="GetResolvedSDKReferences" Condition="'$(IncludeGetResolvedSDKReferences)' == 'true'">
+      <Output TaskParameter="TargetOutputs" ItemName="_GetResolvedSDKReferencesOutputWithoutMetadata"/>
+    </CallTarget>
+    <ItemGroup>
+      <_GetResolvedSDKReferencesOutput Include="@(_GetResolvedSDKReferencesOutputWithoutMetadata)">
+        <OutputGroup>GetResolvedSDKReferences</OutputGroup>
+        <ProjectName>$(ProjectName)</ProjectName>
+      </_GetResolvedSDKReferencesOutput>
+    </ItemGroup>
+    <CallTarget Targets="_GetProjectArchitecture">
+      <Output TaskParameter="TargetOutputs" ItemName="_ProjectArchitecture" />
+    </CallTarget>
+    <ItemGroup>
+      <_ProjectArchitectureItem Include="@(_ProjectArchitecture)">
+        <OutputGroup>_GetProjectArchitecture</OutputGroup>
+        <ProjectName>$(ProjectName)</ProjectName>
+      </_ProjectArchitectureItem>
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectPriFile Include="$(ProjectPriFullPath)" Condition="'$(IncludeProjectPriFile)' == 'true'">
+        <OutputGroup>ProjectPriFile</OutputGroup>
+        <ProjectName>$(ProjectName)</ProjectName>
+        <TargetPath>$(ProjectPriFileName)</TargetPath>
+      </ProjectPriFile>
+    </ItemGroup>
+    <PropertyGroup>
+      <_ContinueOnError Condition="'$(BuildingProject)' == 'true'">false</_ContinueOnError>
+      <_ContinueOnError Condition="'$(BuildingProject)' != 'true'">true</_ContinueOnError>
+    </PropertyGroup>
+    <MSBuild
+      Projects="@(_MSBuildProjectReferenceExistent)"
+      Targets="GetMrtPackagingOutputs"
+      BuildInParallel="$(BuildInParallel)"
+      Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration); %(_MSBuildProjectReferenceExistent.SetPlatform); %(_MSBuildProjectReferenceExistent.SetTargetFramework)"
+      Condition="'@(_MSBuildProjectReferenceExistent)' != ''
+                 and '%(_MSBuildProjectReferenceExistent.BuildReference)' == 'true'
+                 and '%(_MSBuildProjectReferenceExistent.ReferenceOutputAssembly)' == 'true'"
+      SkipNonexistentTargets="true"
+      ContinueOnError="$(_ContinueOnError)"
+      RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove)$(_GlobalPropertiesToRemoveFromProjectReferences)">
+      <Output TaskParameter="TargetOutputs" ItemName="_PackagingOutputsFromOtherMrtCoreProjects"/>
+    </MSBuild>
+    <MSBuild
+      Projects="@(_MSBuildProjectReferenceExistent)"
+      Targets="GetPackagingOutputs"
+      BuildInParallel="$(BuildInParallel)"
+      Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration); %(_MSBuildProjectReferenceExistent.SetPlatform); %(_MSBuildProjectReferenceExistent.SetTargetFramework)"
+      Condition="'@(_MSBuildProjectReferenceExistent)' != ''
+                 and '%(_MSBuildProjectReferenceExistent.BuildReference)' == 'true'
+                 and '%(_MSBuildProjectReferenceExistent.ReferenceOutputAssembly)' == 'true'"
+      SkipNonexistentTargets="true"
+      ContinueOnError="$(_ContinueOnError)"
+      RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove)$(_GlobalPropertiesToRemoveFromProjectReferences)">
+      <Output TaskParameter="TargetOutputs" ItemName="_PackagingOutputsFromOtherUwpProjects"/>
+    </MSBuild>
+    <ItemGroup>
+      <_PackagingOutputsOutsideLayout Include="@(ProjectPriFile)" />
+      <_PackagingOutputsOutsideLayout Include="@(_PackagingOutputsExpanded)" />
+      <_PackagingOutputsOutsideLayout Include="@(_GetResolvedSDKReferencesOutput)" />
+      <_PackagingOutputsOutsideLayout Include="@(_PackagingOutputsFromOtherMrtCoreProjects)" />
+      <_PackagingOutputsOutsideLayout Include="@(_PackagingOutputsFromOtherUwpProjects)" />
+    </ItemGroup>
+    <ItemGroup>
+      <PathsToExcludeFromLayoutOutputGroup Include="@(_PackagingOutputsOutsideLayout->'%(TargetPath)')" />
+      <PathsToExcludeFromLayoutOutputGroup Include="$(AppxManifestTargetPath)" />
+      <PathsToExcludeFromLayoutOutputGroup Include="$(DeploymentRecipeTargetPath)" />
+    </ItemGroup>
+    <ItemGroup>
+      <DirsToExcludeFromLayoutOutputGroup Include="$(WinMetadataDir)" />
+      <DirsToExcludeFromLayoutOutputGroup Include="$(EntryPointDir)" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackagingOutputs Include="@(_PackagingOutputsFromLayout)">
+        <ProjectName>$(ProjectName)</ProjectName>
+        <OutputGroup>LayoutOutputGroup</OutputGroup>
+      </PackagingOutputs>
+      <PackagingOutputs Include="@(_PackagingOutputsOutsideLayout)" />
+      <PackagingOutputs Include="@(_ProjectArchitectureItem)" />
+    </ItemGroup>
+    <ItemGroup>
+      <_PackagingOutputsXbfXaml Include="$([System.IO.Path]::ChangeExtension('%(PackagingOutputs.Identity)','.xaml'))" Condition="'%(Extension)' == '.xbf'" />
+      <PackagingOutputs Remove="@(_PackagingOutputsXbfXaml)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_ValidateConfiguration" />
+
+  <Target Name="_GetDefaultResourceLanguage">
+    <PropertyGroup>
+      <DefaultResourceLanguage Condition="'$(DefaultResourceLanguage)' == ''">en-US</DefaultResourceLanguage>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="_GetPackageArchitecture">
+    <PropertyGroup>
+      <PackageArchitecture Condition="'$(PackageArchitecture)' == ''">x64</PackageArchitecture>
+    </PropertyGroup>
+  </Target>
+</Project>

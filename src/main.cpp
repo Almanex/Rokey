@@ -1,6 +1,7 @@
 /*
  * Roke - Keyboard Layout Converter
  * Скрывается в трей, взаимодействие через иконку
+ * Фоновый воркер
  */
 
 #include <windows.h>
@@ -8,18 +9,13 @@
 #include <unordered_map>
 #include <shellapi.h>
 #include <objbase.h>
-#include <dwmapi.h>
-#include <uxtheme.h>
 #include <vector>
 #include "resource.h"
 
 #pragma comment(lib, "shell32.lib")
 #pragma comment(lib, "ole32.lib")
-#pragma comment(lib, "dwmapi.lib")
-#pragma comment(lib, "uxtheme.lib")
 
-// SetPreferredAppMode Ordinal function definition for dark context menus
-typedef int (WINAPI* pfnSetPreferredAppMode)(int appMode);
+#define WM_RELOAD_SETTINGS (WM_USER + 100)
 
 // ============== Settings & Persistence ==============
 struct Settings {
@@ -50,25 +46,6 @@ void LoadSettings() {
         if (RegQueryValueExW(hKey, L"HotkeyType", NULL, &dwType, (LPBYTE)&val, &dwSize) == ERROR_SUCCESS) {
             g_settings.hotkeyType = static_cast<int>(val);
         }
-        RegCloseKey(hKey);
-    }
-}
-
-void SaveSettings() {
-    HKEY hKey;
-    if (RegCreateKeyExW(HKEY_CURRENT_USER, L"Software\\Roke", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey, NULL) == ERROR_SUCCESS) {
-        DWORD val = g_settings.restoreClipboard ? 1 : 0;
-        RegSetValueExW(hKey, L"RestoreClipboard", 0, REG_DWORD, (const BYTE*)&val, sizeof(DWORD));
-        
-        val = g_settings.switchLayout ? 1 : 0;
-        RegSetValueExW(hKey, L"SwitchLayout", 0, REG_DWORD, (const BYTE*)&val, sizeof(DWORD));
-        
-        val = g_settings.playSound ? 1 : 0;
-        RegSetValueExW(hKey, L"PlaySound", 0, REG_DWORD, (const BYTE*)&val, sizeof(DWORD));
-        
-        val = static_cast<DWORD>(g_settings.hotkeyType);
-        RegSetValueExW(hKey, L"HotkeyType", 0, REG_DWORD, (const BYTE*)&val, sizeof(DWORD));
-        
         RegCloseKey(hKey);
     }
 }
@@ -172,7 +149,6 @@ private:
 
 // ============== Global Variables ==============
 HHOOK g_hKeyboardHook = NULL;
-HWND g_hMainWnd = NULL;
 HWND g_hTrayWnd = NULL;
 
 // ============== Send Keys ==============
@@ -229,11 +205,9 @@ HKL GetLayoutHKL(bool toRussian) {
 
 // ============== Convert ==============
 void ConvertFromClipboard() {
-    // Release physical modifier interference
     ReleaseAllModifiers();
     Sleep(50);
     
-    // Backup clipboard via OLE
     IDataObject* pBackup = nullptr;
     HRESULT hrBackup = E_FAIL;
     if (g_settings.restoreClipboard) {
@@ -284,7 +258,6 @@ void ConvertFromClipboard() {
     SendCtrlV();
     Sleep(100);
     
-    // Switch keyboard layout if requested
     if (g_settings.switchLayout) {
         HWND activeWnd = GetForegroundWindow();
         if (activeWnd) {
@@ -305,12 +278,10 @@ void ConvertFromClipboard() {
         }
     }
     
-    // Play sound if requested
     if (g_settings.playSound) {
         MessageBeep(MB_ICONINFORMATION);
     }
     
-    // Restore original clipboard contents
     if (SUCCEEDED(hrBackup) && pBackup) {
         Sleep(200); 
         OleSetClipboard(pBackup);
@@ -324,11 +295,14 @@ void ToggleAutostart();
 
 LRESULT CALLBACK TrayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
+        case WM_RELOAD_SETTINGS:
+            LoadSettings();
+            return 0;
+            
         case WM_USER + 1: // Tray icon message
             if (lParam == WM_RBUTTONUP) {
                 HMENU hMenu = CreatePopupMenu();
                 
-                // Check if autostart is enabled
                 bool autostart = false;
                 HKEY hKey;
                 if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
@@ -354,7 +328,6 @@ LRESULT CALLBACK TrayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) 
                 TrackPopupMenu(hMenu, TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, NULL);
                 DestroyMenu(hMenu);
             } else if (lParam == WM_LBUTTONDBLCLK) {
-                // Background thread with correct OLE lifetime
                 CreateThread(NULL, 0, [](LPVOID)->DWORD {
                     OleInitialize(NULL);
                     ConvertFromClipboard();
@@ -375,8 +348,7 @@ LRESULT CALLBACK TrayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) 
                     }, NULL, 0, NULL);
                     break;
                 case 2: // Show settings
-                    ShowWindow(g_hMainWnd, SW_SHOW);
-                    SetForegroundWindow(g_hMainWnd);
+                    ShellExecuteW(NULL, L"open", L"RokeSettings.exe", NULL, NULL, SW_SHOWNORMAL);
                     break;
                 case 3: // Exit
                     PostQuitMessage(0);
@@ -412,7 +384,7 @@ void ToggleAutostart() {
 
 void CreateTrayIcon(HWND hwnd) {
     g_hTrayWnd = CreateWindowExW(0, L"RokeTrayClass", L"Roke Tray",
-        WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, HWND_MESSAGE, NULL, 
+        WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, NULL, NULL, 
         (HINSTANCE)GetModuleHandle(NULL), NULL);
     
     HICON hIcon = LoadIconW((HINSTANCE)GetModuleHandle(NULL), MAKEINTRESOURCEW(IDI_ICON));
@@ -486,269 +458,12 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
     return CallNextHookEx(g_hKeyboardHook, nCode, wParam, lParam);
 }
 
-// ============== GUI Double-Buffered Painting ==============
-void DrawSettingsUI(HWND hwnd, HDC hdc) {
-    RECT rc;
-    GetClientRect(hwnd, &rc);
-    int width = rc.right - rc.left;
-    int height = rc.bottom - rc.top;
-
-    HDC memDC = CreateCompatibleDC(hdc);
-    HBITMAP memBM = CreateCompatibleBitmap(hdc, width, height);
-    HBITMAP oldBM = (HBITMAP)SelectObject(memDC, memBM);
-
-    // Background: Genuine Win11 Slate Dark #1C1C1E
-    HBRUSH bgBrush = CreateSolidBrush(RGB(28, 28, 30)); 
-    FillRect(memDC, &rc, bgBrush);
-    DeleteObject(bgBrush);
-
-    // Fonts
-    HFONT hFontLogo = CreateFontW(28, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
-    HFONT hFontSub = CreateFontW(14, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
-    HFONT hFontText = CreateFontW(16, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
-    HFONT hFontHeader = CreateFontW(16, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
-
-    // Title & Subtitle drawing with transparent backgrounds
-    SetBkMode(memDC, TRANSPARENT);
-    
-    // Logo
-    SelectObject(memDC, hFontLogo);
-    SetTextColor(memDC, RGB(96, 205, 255)); // Fluent Blue #60CDFF
-    TextOutW(memDC, 24, 18, L"ROKE", 4);
-
-    // Subtitle
-    SelectObject(memDC, hFontSub);
-    SetTextColor(memDC, RGB(160, 160, 160)); 
-    TextOutW(memDC, 110, 28, L"умный конвертер раскладки", 25);
-
-    // Divider Line (Fluent Dark #2C2C2E)
-    HPEN dividerPen = CreatePen(PS_SOLID, 1, RGB(44, 44, 46)); 
-    HPEN oldPen = (HPEN)SelectObject(memDC, dividerPen);
-    MoveToEx(memDC, 24, 60, NULL);
-    LineTo(memDC, width - 24, 60);
-
-    POINT ptCursor;
-    GetCursorPos(&ptCursor);
-    ScreenToClient(hwnd, &ptCursor);
-
-    // Elegant Win11 Toggle Switch Row Drawer
-    auto DrawSwitchRow = [&](const std::wstring& label, int y, bool value, bool hover) {
-        SelectObject(memDC, hFontText);
-        SetBkMode(memDC, TRANSPARENT);
-        SetTextColor(memDC, hover ? RGB(255, 255, 255) : RGB(224, 224, 224));
-        TextOutW(memDC, 24, y + 2, label.c_str(), static_cast<int>(label.length()));
-
-        HBRUSH pillBrush;
-        HPEN borderPen;
-        HBRUSH knobBrush;
-        
-        if (value) {
-            // ON State: Fluent Accent Blue (#0078D4 normal, #60CDFF hover), no border
-            COLORREF blueBg = hover ? RGB(96, 205, 255) : RGB(0, 120, 212);
-            pillBrush = CreateSolidBrush(blueBg);
-            borderPen = CreatePen(PS_SOLID, 1, blueBg);
-            knobBrush = CreateSolidBrush(RGB(255, 255, 255)); // White knob
-        } else {
-            // OFF State: transparent/dark background, gray outline (#9F9F9F normal, #FFFFFF hover)
-            COLORREF borderCol = hover ? RGB(255, 255, 255) : RGB(159, 159, 159);
-            pillBrush = CreateSolidBrush(hover ? RGB(45, 45, 48) : RGB(28, 28, 30));
-            borderPen = CreatePen(PS_SOLID, 1, borderCol);
-            knobBrush = CreateSolidBrush(borderCol); // Knob matches border color
-        }
-        
-        HPEN oldBorder = (HPEN)SelectObject(memDC, borderPen);
-        HBRUSH oldPill = (HBRUSH)SelectObject(memDC, pillBrush);
-
-        // Draw pill: 40px wide, 20px high, fully rounded
-        RoundRect(memDC, 390, y + 2, 430, y + 22, 20, 20);
-
-        SelectObject(memDC, oldBorder);
-        DeleteObject(borderPen);
-        SelectObject(memDC, oldPill);
-        DeleteObject(pillBrush);
-
-        // Draw circular knob: 12px diameter
-        HBRUSH oldKnob = (HBRUSH)SelectObject(memDC, knobBrush);
-        int knobX = value ? 414 : 394;
-        Ellipse(memDC, knobX, y + 6, knobX + 12, y + 18);
-        
-        SelectObject(memDC, oldKnob);
-        DeleteObject(knobBrush);
-    };
-
-    DrawSwitchRow(L"Восстанавливать буфер обмена", 80, g_settings.restoreClipboard, (ptCursor.x >= 24 && ptCursor.x <= 428 && ptCursor.y >= 75 && ptCursor.y <= 105));
-    DrawSwitchRow(L"Переключать раскладку системы", 125, g_settings.switchLayout, (ptCursor.x >= 24 && ptCursor.x <= 428 && ptCursor.y >= 120 && ptCursor.y <= 150));
-    DrawSwitchRow(L"Звук при успешной конвертации", 170, g_settings.playSound, (ptCursor.x >= 24 && ptCursor.x <= 428 && ptCursor.y >= 165 && ptCursor.y <= 195));
-
-    // Bottom Divider
-    MoveToEx(memDC, 24, 210, NULL);
-    LineTo(memDC, width - 24, 210);
-
-    // Hotkey header
-    SelectObject(memDC, hFontHeader);
-    SetBkMode(memDC, TRANSPARENT);
-    SetTextColor(memDC, RGB(255, 255, 255));
-    TextOutW(memDC, 24, 225, L"Сочетание клавиш активации:", 27);
-
-    // Modern Button Tabs
-    auto DrawHotkeyButton = [&](const std::wstring& text, int x, int y, int w, int h, bool selected, bool hover) {
-        HBRUSH btnBrush;
-        HPEN btnPen;
-        
-        if (selected) {
-            btnBrush = CreateSolidBrush(RGB(38, 38, 40)); 
-            btnPen = CreatePen(PS_SOLID, 2, RGB(96, 205, 255)); 
-        } else {
-            btnBrush = CreateSolidBrush(hover ? RGB(44, 44, 46) : RGB(34, 34, 36)); 
-            btnPen = CreatePen(PS_SOLID, 1, hover ? RGB(80, 80, 82) : RGB(50, 50, 52)); 
-        }
-        
-        HPEN oldP = (HPEN)SelectObject(memDC, btnPen);
-        HBRUSH oldB = (HBRUSH)SelectObject(memDC, btnBrush);
-
-        RoundRect(memDC, x, y, x + w, y + h, 8, 8); 
-
-        SelectObject(memDC, oldP);
-        SelectObject(memDC, oldB);
-        DeleteObject(btnPen);
-        DeleteObject(btnBrush);
-
-        if (selected) {
-            HBRUSH accentBarBrush = CreateSolidBrush(RGB(96, 205, 255));
-            RECT barRect = { x + w / 4, y + h - 3, x + 3 * w / 4, y + h - 1 };
-            FillRect(memDC, &barRect, accentBarBrush);
-            DeleteObject(accentBarBrush);
-        }
-
-        SelectObject(memDC, hFontSub);
-        SetBkMode(memDC, TRANSPARENT);
-        SetTextColor(memDC, selected ? RGB(96, 205, 255) : (hover ? RGB(255, 255, 255) : RGB(180, 180, 180))); 
-        
-        SIZE textSize;
-        GetTextExtentPoint32W(memDC, text.c_str(), static_cast<int>(text.length()), &textSize);
-        TextOutW(memDC, x + (w - textSize.cx) / 2, y + (h - textSize.cy) / 2, text.c_str(), static_cast<int>(text.length()));
-    };
-
-    DrawHotkeyButton(L"Ctrl + Shift + Q", 24, 255, 134, 38, g_settings.hotkeyType == 0, (ptCursor.x >= 24 && ptCursor.x <= 158 && ptCursor.y >= 255 && ptCursor.y <= 293));
-    DrawHotkeyButton(L"Ctrl + Alt + Q", 170, 255, 134, 38, g_settings.hotkeyType == 1, (ptCursor.x >= 170 && ptCursor.x <= 304 && ptCursor.y >= 255 && ptCursor.y <= 293));
-    DrawHotkeyButton(L"F12", 316, 255, 134, 38, g_settings.hotkeyType == 2, (ptCursor.x >= 316 && ptCursor.x <= 450 && ptCursor.y >= 255 && ptCursor.y <= 293));
-
-    SelectObject(memDC, oldPen);
-    DeleteObject(dividerPen);
-
-    DeleteObject(hFontLogo);
-    DeleteObject(hFontSub);
-    DeleteObject(hFontText);
-    DeleteObject(hFontHeader);
-
-    BitBlt(hdc, 0, 0, width, height, memDC, 0, 0, SRCCOPY);
-
-    SelectObject(memDC, oldBM);
-    DeleteObject(memBM);
-    DeleteDC(memDC);
-}
-
-// ============== Main Window Proc ==============
-LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    switch (msg) {
-        case WM_PAINT: {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hwnd, &ps);
-            DrawSettingsUI(hwnd, hdc);
-            EndPaint(hwnd, &ps);
-            return 0;
-        }
-        
-        case WM_ERASEBKGND:
-            return 1; // Prevent flicker
-
-        case WM_SETCURSOR: {
-            POINT pt;
-            GetCursorPos(&pt);
-            ScreenToClient(hwnd, &pt);
-            
-            bool hover = (pt.x >= 24 && pt.x <= 450 && pt.y >= 75 && pt.y <= 105) || 
-                         (pt.x >= 24 && pt.x <= 450 && pt.y >= 120 && pt.y <= 150) || 
-                         (pt.x >= 24 && pt.x <= 450 && pt.y >= 165 && pt.y <= 195) || 
-                         (pt.x >= 24 && pt.x <= 158 && pt.y >= 255 && pt.y <= 293) || 
-                         (pt.x >= 170 && pt.x <= 304 && pt.y >= 255 && pt.y <= 293) || 
-                         (pt.x >= 316 && pt.x <= 450 && pt.y >= 255 && pt.y <= 293);  
-            
-            if (hover) {
-                SetCursor(LoadCursor(NULL, IDC_HAND));
-                return TRUE;
-            }
-            break;
-        }
-
-        case WM_MOUSEMOVE:
-            InvalidateRect(hwnd, NULL, FALSE);
-            return 0;
-
-        case WM_LBUTTONDOWN: {
-            int x = LOWORD(lParam);
-            int y = HIWORD(lParam);
-            bool changed = false;
-            
-            if (x >= 24 && x <= 450 && y >= 75 && y <= 105) {
-                g_settings.restoreClipboard = !g_settings.restoreClipboard;
-                changed = true;
-            } else if (x >= 24 && x <= 450 && y >= 120 && y <= 150) {
-                g_settings.switchLayout = !g_settings.switchLayout;
-                changed = true;
-            } else if (x >= 24 && x <= 450 && y >= 165 && y <= 195) {
-                g_settings.playSound = !g_settings.playSound;
-                changed = true;
-            } else if (x >= 24 && x <= 158 && y >= 255 && y <= 293) {
-                g_settings.hotkeyType = 0;
-                changed = true;
-            } else if (x >= 170 && x <= 304 && y >= 255 && y <= 293) {
-                g_settings.hotkeyType = 1;
-                changed = true;
-            } else if (x >= 316 && x <= 450 && y >= 255 && y <= 293) {
-                g_settings.hotkeyType = 2;
-                changed = true;
-            }
-            
-            if (changed) {
-                SaveSettings();
-                InvalidateRect(hwnd, NULL, FALSE);
-            }
-            return 0;
-        }
-
-        case WM_CLOSE:
-            ShowWindow(hwnd, SW_HIDE);
-            return 0;
-            
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            return 0;
-    }
-    return DefWindowProcW(hwnd, msg, wParam, lParam);
-}
-
 // ============== Entry Point ==============
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-    // Load persisted settings
     LoadSettings();
     
-    // Enable Native Windows Dark Mode Context Menus safely via GetModuleHandle
-    HMODULE hUxtheme = GetModuleHandleW(L"uxtheme.dll");
-    if (!hUxtheme) {
-        hUxtheme = LoadLibraryW(L"uxtheme.dll");
-    }
-    if (hUxtheme) {
-        pfnSetPreferredAppMode SetPreferredAppMode = (pfnSetPreferredAppMode)GetProcAddress(hUxtheme, MAKEINTRESOURCEA(135));
-        if (SetPreferredAppMode) {
-            SetPreferredAppMode(2); // 2 = Force Dark
-        }
-    }
-    
-    // Initialize OLE for advanced clipboard backup/restore
     OleInitialize(NULL);
     
-    // Register tray class
     WNDCLASSEXW trayClass = {};
     trayClass.cbSize = sizeof(WNDCLASSEXW);
     trayClass.lpfnWndProc = TrayWndProc;
@@ -756,41 +471,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     trayClass.lpszClassName = L"RokeTrayClass";
     RegisterClassExW(&trayClass);
     
-    // Register main window class
-    WNDCLASSEXW mainClass = {};
-    mainClass.cbSize = sizeof(WNDCLASSEXW);
-    mainClass.lpfnWndProc = MainWndProc;
-    mainClass.hInstance = hInstance;
-    mainClass.lpszClassName = L"RokeMainClass";
-    mainClass.hIcon = LoadIconW(hInstance, MAKEINTRESOURCEW(IDI_ICON));
-    if (!mainClass.hIcon) {
-        mainClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-    }
-    mainClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-    RegisterClassExW(&mainClass);
-    
-    // Calculate exact size for 480x320 client area
-    RECT rc = { 0, 0, 480, 320 };
-    AdjustWindowRectEx(&rc, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX, FALSE, 0);
-    
-    // Create main window (hidden by default) centered
-    HWND hwnd = CreateWindowExW(0, L"RokeMainClass", L"Roke - Настройки",
-        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
-        (GetSystemMetrics(SM_CXSCREEN) - (rc.right - rc.left)) / 2, 
-        (GetSystemMetrics(SM_CYSCREEN) - (rc.bottom - rc.top)) / 2, 
-        rc.right - rc.left, rc.bottom - rc.top, NULL, NULL, hInstance, NULL);
-    g_hMainWnd = hwnd;
-    
-    if (hwnd == NULL) {
-        OleUninitialize();
-        return 1;
-    }
-    
-    // Force Immersive Dark Mode for Titlebar and window controls (minimize/maximize/close)
-    BOOL dark = TRUE;
-    DwmSetWindowAttribute(hwnd, 20, &dark, sizeof(dark)); // DWMWA_USE_IMMERSIVE_DARK_MODE
-    
-    CreateTrayIcon(hwnd);
+    CreateTrayIcon(NULL);
     
     g_hKeyboardHook = SetWindowsHookExW(WH_KEYBOARD_LL, KeyboardHookProc, GetModuleHandle(NULL), 0);
     
